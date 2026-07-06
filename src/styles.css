@@ -1,0 +1,301 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #111827;
+  background: #f7f8fb;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.landing-hero {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(21, 199, 123, 0.22), transparent 26%),
+    linear-gradient(135deg, #06150f 0%, #092318 48%, #05100b 100%);
+}
+
+.landing-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 72px 72px;
+  animation: grid-drift 18s linear infinite;
+}
+
+.landing-rail {
+  position: absolute;
+  left: -18%;
+  right: -18%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(39, 245, 152, 0.95), transparent);
+  transform: rotate(-14deg);
+  opacity: 0.55;
+}
+
+.landing-rail::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 0;
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+  background: #35f19a;
+  box-shadow: 0 0 22px rgba(53, 241, 154, 0.95);
+  animation: rail-pulse 6s ease-in-out infinite;
+}
+
+.landing-rail-a {
+  top: 28%;
+  animation: rail-slide 9s linear infinite;
+}
+
+.landing-rail-b {
+  top: 58%;
+  animation: rail-slide 12s linear infinite reverse;
+}
+
+.landing-rail-c {
+  top: 78%;
+  opacity: 0.3;
+  animation: rail-slide 15s linear infinite;
+}
+
+.payment-node {
+  position: absolute;
+  z-index: 4;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+  padding: 11px 13px;
+  font-size: 13px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  animation: node-float 5s ease-in-out infinite;
+}
+
+.node-a {
+  top: 23%;
+  right: 13%;
+}
+
+.node-b {
+  top: 48%;
+  right: 8%;
+  animation-delay: -1.4s;
+}
+
+.node-c {
+  bottom: 18%;
+  right: 24%;
+  animation-delay: -2.2s;
+}
+
+.node-d {
+  bottom: 31%;
+  right: 42%;
+  animation-delay: -3s;
+}
+
+.dashboard-visual {
+  position: absolute;
+  right: 7%;
+  top: 25%;
+  z-index: 3;
+  display: none;
+  width: min(420px, 34vw);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(6, 21, 15, 0.72);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(22px);
+  animation: visual-rise 7s ease-in-out infinite;
+}
+
+.visual-topbar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+}
+
+.visual-topbar span {
+  height: 9px;
+  width: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.visual-body {
+  padding: 18px;
+}
+
+.visual-balance {
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(21, 199, 123, 0.24), rgba(255, 255, 255, 0.08));
+  padding: 18px;
+}
+
+.visual-balance p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+}
+
+.visual-balance strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 30px;
+}
+
+.visual-bars {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  height: 118px;
+  padding: 18px 4px;
+}
+
+.visual-bars span {
+  flex: 1;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #54f5a8, #0f9f63);
+  animation: bar-wave 3.4s ease-in-out infinite;
+}
+
+.visual-bars span:nth-child(1) {
+  height: 38%;
+}
+
+.visual-bars span:nth-child(2) {
+  height: 62%;
+  animation-delay: -0.4s;
+}
+
+.visual-bars span:nth-child(3) {
+  height: 46%;
+  animation-delay: -0.8s;
+}
+
+.visual-bars span:nth-child(4) {
+  height: 82%;
+  animation-delay: -1.2s;
+}
+
+.visual-bars span:nth-child(5) {
+  height: 68%;
+  animation-delay: -1.6s;
+}
+
+.visual-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 12px 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+}
+
+.visual-row b {
+  color: #7ff7b5;
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .payment-node,
+  .dashboard-visual {
+    display: flex;
+  }
+
+  .dashboard-visual {
+    display: block;
+  }
+}
+
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 72px 72px;
+  }
+}
+
+@keyframes rail-slide {
+  0% {
+    transform: translateX(-8%) rotate(-14deg);
+  }
+  50% {
+    transform: translateX(8%) rotate(-14deg);
+  }
+  100% {
+    transform: translateX(-8%) rotate(-14deg);
+  }
+}
+
+@keyframes rail-pulse {
+  0% {
+    left: 4%;
+  }
+  50% {
+    left: 82%;
+  }
+  100% {
+    left: 4%;
+  }
+}
+
+@keyframes node-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes visual-rise {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes bar-wave {
+  0%,
+  100% {
+    filter: saturate(0.9);
+    transform: scaleY(0.92);
+  }
+  50% {
+    filter: saturate(1.25);
+    transform: scaleY(1);
+  }
+}
