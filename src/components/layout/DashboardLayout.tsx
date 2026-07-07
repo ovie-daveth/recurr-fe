@@ -109,14 +109,25 @@ export function DashboardLayout() {
                 </option>
               ))}
             </select>
-            <select
-              className="rounded-md border border-line bg-white px-3 py-2 text-sm"
-              value={selectedMode}
-              onChange={(event) => setMode(event.target.value as "TEST" | "LIVE")}
-            >
-              <option value="TEST">Test mode</option>
-              <option value="LIVE">Live mode</option>
-            </select>
+            <div className="flex rounded-md border border-line bg-slate-50 p-1" aria-label="Dashboard environment">
+              {(["TEST", "LIVE"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  className={[
+                    "rounded px-3 py-1.5 text-xs font-semibold transition",
+                    selectedMode === mode
+                      ? mode === "LIVE"
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "bg-ink text-white shadow-sm"
+                      : "text-slate-600 hover:text-ink"
+                  ].join(" ")}
+                  type="button"
+                  onClick={() => setMode(mode)}
+                >
+                  {mode === "TEST" ? "Test" : "Live"}
+                </button>
+              ))}
+            </div>
             <button className="rounded-md border border-line p-2 text-slate-600" type="button">
               <BellRing size={18} />
             </button>

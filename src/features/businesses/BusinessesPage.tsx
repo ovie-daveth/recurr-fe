@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CheckCircle2, Loader2, Pencil, Plus } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { Building2, CheckCircle2, Loader2, Pencil, Plus, X } from "lucide-react";
+import { FormEvent, type ReactNode, useMemo, useState } from "react";
 import {
   createBusiness,
   listBusinesses,
@@ -101,7 +101,7 @@ export function BusinessesPage() {
             className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
             type="button"
             onClick={() => {
-              setCreateOpen((current) => !current);
+              setCreateOpen(true);
               setEditingBusiness(null);
               setFormError(null);
             }}
@@ -184,7 +184,7 @@ export function BusinessesPage() {
 
           <aside className="space-y-6">
             {activeBusiness && (
-              <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
+              <section className="sticky top-24 rounded-lg border border-line bg-white p-5 shadow-panel">
                 <p className="text-sm font-medium text-muted">Active business</p>
                 <h2 className="mt-2 text-xl font-semibold">{activeBusiness.name}</h2>
                 <dl className="mt-4 space-y-3 text-sm">
@@ -197,33 +197,69 @@ export function BusinessesPage() {
               </section>
             )}
 
-            {createOpen && (
-              <BusinessForm
-                title="Create business"
-                type={type}
-                setType={setType}
-                loading={createMutation.isPending}
-                error={formError}
-                onSubmit={handleCreate}
-              />
-            )}
-
-            {editingBusiness && (
-              <BusinessForm
-                title={`Edit ${editingBusiness.name}`}
-                business={editingBusiness}
-                type={editingBusiness.type}
-                setType={() => undefined}
-                loading={updateMutation.isPending}
-                error={formError}
-                onCancel={() => setEditingBusiness(null)}
-                onSubmit={handleUpdate}
-              />
-            )}
           </aside>
         </div>
       )}
+
+      {createOpen && (
+        <BusinessModal title="Create business" onClose={() => setCreateOpen(false)}>
+          <BusinessForm
+            title="Create business"
+            type={type}
+            setType={setType}
+            loading={createMutation.isPending}
+            error={formError}
+            onSubmit={handleCreate}
+          />
+        </BusinessModal>
+      )}
+
+      {editingBusiness && (
+        <BusinessModal title={`Edit ${editingBusiness.name}`} onClose={() => setEditingBusiness(null)}>
+          <BusinessForm
+            title={`Edit ${editingBusiness.name}`}
+            business={editingBusiness}
+            type={editingBusiness.type}
+            setType={() => undefined}
+            loading={updateMutation.isPending}
+            error={formError}
+            onCancel={() => setEditingBusiness(null)}
+            onSubmit={handleUpdate}
+          />
+        </BusinessModal>
+      )}
     </>
+  );
+}
+
+function BusinessModal({
+  title,
+  children,
+  onClose
+}: {
+  title: string;
+  children: ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/45 px-4 py-8 backdrop-blur-sm">
+      <div className="min-h-full w-full max-w-2xl">
+        <div className="overflow-hidden rounded-lg bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-line px-5 py-4">
+            <h2 className="font-semibold">{title}</h2>
+            <button
+              aria-label="Close modal"
+              className="rounded-md border border-line p-2 text-muted hover:bg-slate-50"
+              type="button"
+              onClick={onClose}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="max-h-[calc(100vh-150px)] overflow-y-auto p-5">{children}</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -249,11 +285,11 @@ function BusinessForm({
   const currentType = business?.type ?? type;
 
   return (
-    <form className="rounded-lg border border-line bg-white p-5 shadow-panel" onSubmit={onSubmit}>
-      <h2 className="font-semibold">{title}</h2>
+    <form onSubmit={onSubmit}>
+      <h3 className="font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted">Business records are used for ownership, API keys, logs, and webhook settings.</p>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="block text-sm font-medium">
           Type
           <select
@@ -276,7 +312,9 @@ function BusinessForm({
             <TextField label="Website" name="website" type="url" defaultValue={business?.website ?? ""} />
           </>
         ) : (
-          <TextField label="Legal name" name="legalName" defaultValue={business?.legalName ?? business?.name} required />
+          <div className="md:col-span-2">
+            <TextField label="Legal name" name="legalName" defaultValue={business?.legalName ?? business?.name} required />
+          </div>
         )}
 
         <TextField label="Contact name" name="contactName" defaultValue={business?.contactName ?? ""} required />
@@ -287,7 +325,7 @@ function BusinessForm({
 
       {error && <p className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex justify-end gap-2 border-t border-line pt-5">
         <button className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" disabled={loading} type="submit">
           {loading ? "Saving..." : "Save business"}
         </button>
