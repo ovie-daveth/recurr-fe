@@ -256,7 +256,15 @@ function PlanForm({
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <TextField label="Name" name="name" defaultValue={plan?.name} required />
         <TextField label="Code" name="code" defaultValue={plan?.code} required />
-        <TextField label="Amount minor" name="amountMinor" type="number" defaultValue={String(plan?.amountMinor ?? "")} required />
+        <TextField
+          label="Amount (NGN)"
+          name="amountMajor"
+          type="number"
+          min="0.01"
+          step="0.01"
+          defaultValue={plan ? String(plan.amountMinor / 100) : ""}
+          required
+        />
         <TextField label="Currency" name="currency" defaultValue={plan?.currency ?? "NGN"} required />
         <label className="block text-sm font-medium">
           Interval
@@ -321,7 +329,7 @@ function buildPlanPayload(form: FormData): PlanPayload {
   return {
     name: String(form.get("name")),
     code: String(form.get("code")),
-    amountMinor: Number(form.get("amountMinor")),
+    amountMinor: Math.round(Number(String(form.get("amountMajor"))) * 100),
     currency: String(form.get("currency") || "NGN"),
     interval: String(form.get("interval")) as PlanInterval,
     intervalCount: Number(form.get("intervalCount") || 1),
