@@ -22,7 +22,8 @@ export function LoginPage() {
       });
       setSession({
         accessToken: session.accessToken ?? session.token ?? "",
-        refreshToken: session.refreshToken
+        refreshToken: session.refreshToken,
+        expiresIn: session.expiresIn
       });
       navigate("/dashboard");
     } catch (err) {

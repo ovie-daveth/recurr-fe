@@ -13,7 +13,11 @@ import {
   Users,
   Webhook
 } from "lucide-react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { NavLink, Outlet } from "react-router-dom";
+import { logoutMerchant } from "../../api/auth";
+import { listBusinesses } from "../../api/businesses";
 import { authStore } from "../../lib/auth-store";
 
 const navItems = [
@@ -32,8 +36,31 @@ const navItems = [
 
 export function DashboardLayout() {
   const selectedMode = authStore((state) => state.selectedMode);
+  const selectedBusinessId = authStore((state) => state.selectedBusinessId);
   const setMode = authStore((state) => state.setMode);
+  const setBusiness = authStore((state) => state.setBusiness);
   const logout = authStore((state) => state.logout);
+  const refreshToken = authStore((state) => state.refreshToken);
+  const businessesQuery = useQuery({
+    queryKey: ["businesses", "selector"],
+    queryFn: () => listBusinesses({ limit: 20 })
+  });
+
+  const businesses = businessesQuery.data?.businesses ?? [];
+
+  useEffect(() => {
+    if (!selectedBusinessId && businesses[0]) {
+      setBusiness(businesses[0].id);
+    }
+  }, [businesses, selectedBusinessId, setBusiness]);
+
+  async function handleLogout() {
+    try {
+      await logoutMerchant(refreshToken ?? undefined);
+    } finally {
+      logout();
+    }
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
@@ -65,9 +92,23 @@ export function DashboardLayout() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-line bg-white px-5">
           <div>
             <p className="text-sm font-semibold">Merchant workspace</p>
-            <p className="text-xs text-muted">Dashboard auth uses merchant JWT sessions.</p>
+            <p className="text-xs text-muted">
+              {businessesQuery.isLoading ? "Loading businesses..." : `${businesses.length} business workspace${businesses.length === 1 ? "" : "s"}`}
+            </p>
           </div>
           <div className="flex items-center gap-3">
+            <select
+              className="max-w-56 rounded-md border border-line bg-white px-3 py-2 text-sm"
+              value={selectedBusinessId ?? ""}
+              onChange={(event) => setBusiness(event.target.value || null)}
+            >
+              <option value="">Select business</option>
+              {businesses.map((business) => (
+                <option key={business.id} value={business.id}>
+                  {business.name}
+                </option>
+              ))}
+            </select>
             <select
               className="rounded-md border border-line bg-white px-3 py-2 text-sm"
               value={selectedMode}
@@ -85,7 +126,7 @@ export function DashboardLayout() {
             <button
               className="rounded-md bg-ink px-3 py-2 text-sm font-medium text-white"
               type="button"
-              onClick={logout}
+              onClick={handleLogout}
             >
               Logout
             </button>

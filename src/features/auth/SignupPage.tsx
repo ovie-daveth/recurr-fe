@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
-import { signupMerchant } from "../../api/auth";
+import { Link, useNavigate } from "react-router-dom";
+import { signupMerchant, type MerchantSignupPayload } from "../../api/auth";
 
 export function SignupPage() {
+  const navigate = useNavigate();
+  const [merchantType, setMerchantType] = useState<"INDIVIDUAL" | "BUSINESS">("INDIVIDUAL");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,17 +16,43 @@ export function SignupPage() {
     setLoading(true);
     const form = new FormData(event.currentTarget);
 
+    const base = {
+      email: String(form.get("email")),
+      password: String(form.get("password")),
+      contactPhone: String(form.get("contactPhone")),
+      country: String(form.get("country") || "NG")
+    };
+
+    const payload: MerchantSignupPayload =
+      merchantType === "BUSINESS"
+        ? {
+            ...base,
+            type: "BUSINESS",
+            name: String(form.get("ownerName")),
+            businessName: String(form.get("businessName")),
+            contactName: String(form.get("contactName")),
+            businessRegistrationNumber: optionalValue(form.get("businessRegistrationNumber")),
+            taxId: optionalValue(form.get("taxId")),
+            website: optionalValue(form.get("website"))
+          }
+        : {
+            ...base,
+            type: "INDIVIDUAL",
+            legalName: String(form.get("legalName")),
+            displayName: optionalValue(form.get("displayName"))
+          };
+
     try {
-      await signupMerchant({
-        type: form.get("type") as "INDIVIDUAL" | "BUSINESS",
-        email: String(form.get("email")),
-        password: String(form.get("password")),
-        legalName: String(form.get("legalName")),
-        displayName: String(form.get("displayName")),
-        contactPhone: String(form.get("contactPhone")),
-        country: String(form.get("country"))
-      });
-      setMessage("Signup created. Check the verification token/link returned by the API in test mode.");
+      const signup = await signupMerchant(payload);
+      setMessage("Signup created. Verify your email to continue.");
+
+      if (signup.verificationToken) {
+        const params = new URLSearchParams({
+          email: base.email,
+          token: signup.verificationToken
+        });
+        navigate(`/auth/verify-email?${params.toString()}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -40,7 +68,12 @@ export function SignupPage() {
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         <label className="block text-sm font-medium">
           Type
-          <select className="mt-2 w-full rounded-md border border-line px-3 py-2" name="type">
+          <select
+            className="mt-2 w-full rounded-md border border-line px-3 py-2"
+            name="type"
+            value={merchantType}
+            onChange={(event) => setMerchantType(event.target.value as "INDIVIDUAL" | "BUSINESS")}
+          >
             <option value="INDIVIDUAL">Individual</option>
             <option value="BUSINESS">Business</option>
           </select>
@@ -57,14 +90,47 @@ export function SignupPage() {
           Password
           <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="password" type="password" required />
         </label>
-        <label className="block text-sm font-medium">
-          Legal name
-          <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="legalName" required />
-        </label>
-        <label className="block text-sm font-medium">
-          Display name
-          <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="displayName" required />
-        </label>
+
+        {merchantType === "INDIVIDUAL" ? (
+          <>
+            <label className="block text-sm font-medium">
+              Legal name
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="legalName" required />
+            </label>
+            <label className="block text-sm font-medium">
+              Display name
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="displayName" />
+            </label>
+          </>
+        ) : (
+          <>
+            <label className="block text-sm font-medium">
+              Owner name
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="ownerName" required />
+            </label>
+            <label className="block text-sm font-medium">
+              Business name
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="businessName" required />
+            </label>
+            <label className="block text-sm font-medium">
+              Contact name
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="contactName" required />
+            </label>
+            <label className="block text-sm font-medium">
+              Registration number
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="businessRegistrationNumber" />
+            </label>
+            <label className="block text-sm font-medium">
+              Tax ID
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="taxId" />
+            </label>
+            <label className="block text-sm font-medium">
+              Website
+              <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="website" type="url" />
+            </label>
+          </>
+        )}
+
         <label className="block text-sm font-medium md:col-span-2">
           Contact phone
           <input className="mt-2 w-full rounded-md border border-line px-3 py-2" name="contactPhone" required />
@@ -83,4 +149,9 @@ export function SignupPage() {
       </p>
     </form>
   );
+}
+
+function optionalValue(value: FormDataEntryValue | null) {
+  const normalized = String(value ?? "").trim();
+  return normalized ? normalized : undefined;
 }

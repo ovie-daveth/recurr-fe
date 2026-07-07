@@ -125,7 +125,7 @@ export function LandingPage() {
           </div>
         </div>
 
-        <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
+        <header className="relative z-10 mx-auto flex items-center justify-between px-5 py-5 lg:px-16">
           <Link className="text-xl font-semibold" to="/">
             Recurr
           </Link>
@@ -147,7 +147,7 @@ export function LandingPage() {
           </div>
         </header>
 
-        <div className="relative z-10 mx-auto flex min-h-[calc(92vh-82px)] max-w-7xl items-center px-5 pb-16 pt-8 lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-[calc(92vh-82px)] items-center px-5 pb-16 pt-8 lg:px-16">
           <div className="max-w-3xl">
             <p className="inline-flex rounded-full border border-emerald-300/30 bg-white/10 px-3 py-1 text-sm font-medium text-emerald-100 backdrop-blur">
               Subscription billing infrastructure for African merchants
@@ -187,8 +187,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="platform" className="bg-[#f6faf8] px-5 py-20 text-[#102017] lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section id="platform" className="bg-[#f6faf8] px-5 py-20 text-[#102017] lg:px-16">
+        <div className="mx-auto">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase text-emerald-700">Platform</p>
             <h2 className="mt-3 text-4xl font-semibold tracking-normal">Everything the merchant needs after the first payment.</h2>
@@ -212,8 +212,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="flow" className="bg-white px-5 py-20 text-[#102017] lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+      <section id="flow" className="bg-white px-5 py-20 text-[#102017] lg:px-16">
+        <div className="mx-auto grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div>
             <p className="text-sm font-semibold uppercase text-emerald-700">Payment flow</p>
             <h2 className="mt-3 text-4xl font-semibold tracking-normal">From signup to recurring collection.</h2>
@@ -247,7 +247,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="developers" className="bg-[#071710] px-5 py-20 text-white lg:px-8">
+      <section id="developers" className="bg-[#071710] px-5 py-20 text-white lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div>
             <p className="text-sm font-semibold uppercase text-emerald-300">Developers</p>

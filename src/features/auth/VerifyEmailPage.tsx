@@ -17,7 +17,8 @@ export function VerifyEmailPage() {
       const session = await verifyMerchantEmail(String(form.get("email")), String(form.get("token")));
       setSession({
         accessToken: session.accessToken ?? session.token ?? "",
-        refreshToken: session.refreshToken
+        refreshToken: session.refreshToken,
+        expiresIn: session.expiresIn
       });
       navigate("/dashboard");
     } catch (err) {
