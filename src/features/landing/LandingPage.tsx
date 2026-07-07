@@ -193,7 +193,7 @@ export function LandingPage() {
             <p className="text-sm font-semibold uppercase text-emerald-700">Platform</p>
             <h2 className="mt-3 text-4xl font-semibold tracking-normal">Everything the merchant needs after the first payment.</h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              The MVP is designed around the full recurring payment loop: setup, billing, retries,
+              The platform is designed around the full recurring payment loop: setup, billing, retries,
               state changes, webhook delivery, and operational visibility.
             </p>
           </div>
