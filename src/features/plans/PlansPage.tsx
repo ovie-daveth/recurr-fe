@@ -298,19 +298,31 @@ function TextField({
   label,
   name,
   type = "text",
+  min,
+  step,
   defaultValue,
   required
 }: {
   label: string;
   name: string;
   type?: string;
+  min?: string;
+  step?: string;
   defaultValue?: string | null;
   required?: boolean;
 }) {
   return (
     <label className="block text-sm font-medium">
       {label}
-      <input className="mt-2 w-full rounded-md border border-line px-3 py-2" defaultValue={defaultValue ?? ""} name={name} required={required} type={type} />
+      <input
+        className="mt-2 w-full rounded-md border border-line px-3 py-2"
+        defaultValue={defaultValue ?? ""}
+        name={name}
+        required={required}
+        type={type}
+        min={min}
+        step={step}
+      />
     </label>
   );
 }
