@@ -1,28 +1,83 @@
 import {
+  ArrowRight,
   BookOpenText,
   CheckCircle2,
   Code2,
+  Copy,
   ExternalLink,
   KeyRound,
   Link as LinkIcon,
+  Route,
   Server,
   ShieldCheck,
+  UserPlus,
   Webhook
 } from "lucide-react";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { CopyButton } from "../../components/ui/CopyButton";
 import { authStore } from "../../lib/auth-store";
 
-const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000"}${
-  import.meta.env.VITE_API_VERSION ?? "/api/v1"
-}`;
-const docsUrl = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000"}/api/docs`;
+const apiOrigin = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000";
+const apiBaseUrl = `${apiOrigin}${import.meta.env.VITE_API_VERSION ?? "/api/v1"}`;
+const docsUrl = `${apiOrigin}/api/docs`;
 
-const endpoints = [
+const steps = [
   {
+    id: "signup",
+    icon: UserPlus,
+    title: "Sign up and create a business",
+    description:
+      "Create your merchant account, verify your email, then create the business that owns plans, customers, subscriptions, and webhooks.",
+    actions: ["Open the dashboard", "Create or select a business", "Switch to Test mode while building"]
+  },
+  {
+    id: "api-key",
+    icon: KeyRound,
+    title: "Get your API key",
+    description:
+      "Generate a Test key first. Use Live keys only when your Nomba live credentials and webhook URL are ready.",
+    actions: ["Go to API keys", "Create a secret key", "Store it only on your server"]
+  },
+  {
+    id: "plan",
+    icon: BookOpenText,
+    title: "Create your recurring plan",
+    description:
+      "A plan is the price and billing interval your customer subscribes to. Money is sent as amountMinor.",
+    actions: ["Create a plan code", "Set amountMinor", "Choose month, week, year, or custom interval"]
+  },
+  {
+    id: "customer",
+    icon: UserPlus,
+    title: "Create or reuse a customer",
+    description:
+      "Before checkout, create a customer in Recurr or reuse the customer record you already have for that subscriber.",
+    actions: ["Send name and email", "Store the returned customer ID", "Use externalReference for your own user ID"]
+  },
+  {
+    id: "checkout",
+    icon: LinkIcon,
+    title: "Send the customer to checkout",
+    description:
+      "Start the hosted subscription flow or payment method setup. Nomba collects the card and Recurr stores the reusable token after payment_success.",
+    actions: ["Redirect to checkoutLink", "Customer enters card and OTP", "Wait for webhook confirmation"]
+  },
+  {
+    id: "webhooks",
+    icon: Webhook,
+    title: "Listen for lifecycle events",
+    description:
+      "Register your webhook endpoint so your app knows when subscriptions, invoices, payment methods, and retries change.",
+    actions: ["Create webhook endpoint", "Store signing secret", "Verify every delivery"]
+  }
+];
+
+const endpointGroups = [
+  {
+    title: "Plans",
+    description: "Create the recurring price your customers will subscribe to.",
     method: "POST",
     path: "/plans",
-    label: "Create a plan",
     body: `{
   "name": "Pro Monthly",
   "code": "pro_monthly",
@@ -33,9 +88,10 @@ const endpoints = [
 }`
   },
   {
+    title: "Customers",
+    description: "Create or find the subscriber inside your business workspace.",
     method: "POST",
     path: "/customers",
-    label: "Create a customer",
     body: `{
   "email": "ada@example.com",
   "name": "Ada Lovelace",
@@ -43,24 +99,29 @@ const endpoints = [
 }`
   },
   {
+    title: "Hosted subscription",
+    description: "Use this when you want Recurr to collect the card and activate the subscription after Nomba payment_success.",
     method: "POST",
-    path: "/customers/{customerId}/payment-methods/setup-checkout",
-    label: "Start Nomba card setup checkout",
+    path: "/public/subscribe/{businessSlug}/{planCode}/start",
     body: `{
-  "callbackUrl": "https://merchant.app/billing/return",
-  "metadata": {
-    "source": "merchant_app"
-  }
+  "customerEmail": "ada@example.com",
+  "customerName": "Ada Lovelace",
+  "callbackUrl": "https://yourapp.com/billing/complete"
 }`
   },
   {
+    title: "Merchant webhooks",
+    description: "Send subscription and billing events from Recurr back to your app.",
     method: "POST",
-    path: "/subscriptions",
-    label: "Create a subscription",
+    path: "/webhook-endpoints",
     body: `{
-  "customerId": "customer_uuid",
-  "planId": "plan_uuid",
-  "paymentMethodId": "payment_method_uuid"
+  "url": "https://yourapp.com/webhooks/recurr",
+  "events": [
+    "subscription.created",
+    "invoice.payment_succeeded",
+    "invoice.payment_failed",
+    "payment_method.updated"
+  ]
 }`
   }
 ];
@@ -71,7 +132,8 @@ const webhookEvents = [
   "subscription.past_due",
   "invoice.payment_succeeded",
   "invoice.payment_failed",
-  "payment_method.updated"
+  "payment_method.updated",
+  "dunning.retry_scheduled"
 ];
 
 export function DevelopersPage() {
@@ -81,6 +143,18 @@ export function DevelopersPage() {
   --url ${apiBaseUrl}/plans \\
   --header 'Authorization: Bearer ${sampleKey}' \\
   --header 'Content-Type: application/json'`;
+  const hostedSnippet = `const response = await fetch("${apiBaseUrl}/public/subscribe/acme/pro_monthly/start?mode=${selectedMode}", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    customerEmail: "ada@example.com",
+    customerName: "Ada Lovelace",
+    callbackUrl: "https://yourapp.com/billing/complete"
+  })
+});
+
+const { data } = await response.json();
+window.location.href = data.checkoutUrl;`;
   const webhookSnippet = `const crypto = require("crypto");
 
 function verifyRecurrSignature(rawBody, signature, secret) {
@@ -98,8 +172,8 @@ function verifyRecurrSignature(rawBody, signature, secret) {
   return (
     <>
       <PageHeader
-        title="Developers"
-        description="API reference, integration flow, authentication headers, and webhook behavior for connecting your app to Recurr."
+        title="Developer integration"
+        description="A practical path for connecting your app to Recurr: create a business, get an API key, send customers to checkout, then listen for billing events."
         action={
           <a
             className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
@@ -108,67 +182,62 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             target="_blank"
           >
             <ExternalLink size={17} />
-            Open Swagger
+            Open API reference
           </a>
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <main className="space-y-6">
           <section className="rounded-lg border border-line bg-white shadow-panel">
-            <div className="border-b border-line px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Server className="text-brand-600" size={19} />
-                <h2 className="font-semibold">Base URL and authentication</h2>
-              </div>
-              <p className="mt-1 text-sm text-muted">Use the business API key from the API keys page. Keys are environment-specific.</p>
-            </div>
-            <div className="grid gap-4 p-5 lg:grid-cols-2">
-              <InfoBlock label="Base URL" value={apiBaseUrl} />
-              <InfoBlock label="Current dashboard mode" value={selectedMode} />
-              <CodeBlock title="Authenticated request" code={authSnippet} />
-              <div className="rounded-lg border border-line bg-slate-50 p-4">
+            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
+              <div>
                 <div className="flex items-center gap-2">
-                  <KeyRound size={18} className="text-muted" />
-                  <h3 className="font-semibold">Required headers</h3>
+                  <Server className="text-brand-600" size={19} />
+                  <h2 className="font-semibold">Connect to Recurr</h2>
                 </div>
-                <dl className="mt-4 space-y-3 text-sm">
-                  <div>
-                    <dt className="font-mono text-xs text-muted">Authorization</dt>
-                    <dd className="mt-1 break-all rounded-md bg-white px-3 py-2">Bearer {sampleKey}</dd>
-                  </div>
-                  <div>
-                    <dt className="font-mono text-xs text-muted">Idempotency-Key</dt>
-                    <dd className="mt-1 rounded-md bg-white px-3 py-2">Recommended for all POST requests.</dd>
-                  </div>
-                </dl>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  Use the dashboard to manage your business setup, then call the API from your backend. Keep secret keys server-side and use webhooks as the source of truth for payment outcomes.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <InfoBlock label="Base URL" value={apiBaseUrl} />
+                  <InfoBlock label="Current mode" value={selectedMode} />
+                </div>
               </div>
+              <CodeBlock title="Authenticated request" code={authSnippet} />
             </div>
           </section>
 
           <section className="rounded-lg border border-line bg-white shadow-panel">
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
-                <BookOpenText className="text-brand-600" size={19} />
-                <h2 className="font-semibold">Core integration flow</h2>
+                <Route className="text-brand-600" size={19} />
+                <h2 className="font-semibold">Integration path</h2>
               </div>
-              <p className="mt-1 text-sm text-muted">The normal merchant path is plan, customer, card setup, then subscription.</p>
+              <p className="mt-1 text-sm text-muted">Follow these steps in order for a normal subscription integration.</p>
             </div>
-            <div className="grid gap-4 p-5 md:grid-cols-2">
-              {[
-                ["1", "Create plans", "Define recurring prices using amountMinor. For NGN, 400000 means NGN 4,000."],
-                ["2", "Create customers", "Store the subscriber under your business before starting checkout."],
-                ["3", "Set up payment method", "Redirect the subscriber to Nomba checkout. Recurr requests card tokenization."],
-                ["4", "Create subscription", "After the payment method is active, create or activate the subscription."]
-              ].map(([step, title, description]) => (
-                <article className="rounded-lg border border-line p-4" key={step}>
+            <div className="divide-y divide-line">
+              {steps.map((step, index) => (
+                <article className="grid gap-4 p-5 lg:grid-cols-[220px_1fr]" key={step.id}>
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-50 text-sm font-semibold text-brand-700">
-                      {step}
+                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-50 text-sm font-semibold text-brand-700">
+                      {index + 1}
                     </span>
-                    <h3 className="font-semibold">{title}</h3>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-normal text-muted">Step {index + 1}</p>
+                      <h3 className="font-semibold">{step.title}</h3>
+                    </div>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-muted">{description}</p>
+                  <div>
+                    <p className="text-sm leading-6 text-slate-700">{step.description}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {step.actions.map((action) => (
+                        <span className="rounded-md border border-line bg-slate-50 px-2.5 py-1 text-xs text-slate-700" key={action}>
+                          {action}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>
@@ -178,25 +247,33 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
                 <Code2 className="text-brand-600" size={19} />
-                <h2 className="font-semibold">Endpoint quick reference</h2>
+                <h2 className="font-semibold">Copy-ready examples</h2>
               </div>
-              <p className="mt-1 text-sm text-muted">Copy the examples and replace IDs with values returned by earlier requests.</p>
+              <p className="mt-1 text-sm text-muted">Start with the hosted subscription flow if you want Recurr and Nomba to handle card setup.</p>
             </div>
-            <div className="divide-y divide-line">
-              {endpoints.map((endpoint) => (
-                <article className="p-5" key={endpoint.path}>
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="font-semibold">{endpoint.label}</h3>
-                      <p className="mt-1 break-all font-mono text-sm text-muted">
-                        <span className="font-semibold text-brand-700">{endpoint.method}</span> {endpoint.path}
-                      </p>
+            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
+              <div className="space-y-4">
+                {endpointGroups.map((endpoint) => (
+                  <article className="rounded-lg border border-line p-4" key={endpoint.path}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold">{endpoint.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-muted">{endpoint.description}</p>
+                      </div>
+                      <CopyButton iconOnly value={`${endpoint.method} ${endpoint.path}`}>
+                        <Copy size={16} />
+                      </CopyButton>
                     </div>
-                    <CopyButton value={`${endpoint.method} ${endpoint.path}`} />
-                  </div>
-                  <CodeBlock className="mt-4" title="Request body" code={endpoint.body} />
-                </article>
-              ))}
+                    <p className="mt-3 break-all font-mono text-xs text-slate-600">
+                      <span className="font-semibold text-brand-700">{endpoint.method}</span> {endpoint.path}
+                    </p>
+                  </article>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <CodeBlock title="Hosted subscription redirect" code={hostedSnippet} />
+                <CodeBlock title="Create plan body" code={endpointGroups[0].body} />
+              </div>
             </div>
           </section>
 
@@ -204,25 +281,39 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
                 <Webhook className="text-brand-600" size={19} />
-                <h2 className="font-semibold">Webhooks</h2>
+                <h2 className="font-semibold">Webhooks and automatic billing</h2>
               </div>
-              <p className="mt-1 text-sm text-muted">Register a merchant webhook endpoint to receive billing events from Recurr.</p>
+              <p className="mt-1 text-sm text-muted">Your integration should trust webhook events, not the customer returning to your callback URL.</p>
             </div>
             <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
               <div>
-                <h3 className="font-semibold">Common event types</h3>
+                <div className="rounded-lg border border-line bg-slate-50 p-4">
+                  <h3 className="font-semibold">What happens after Nomba payment_success</h3>
+                  <ol className="mt-3 space-y-3 text-sm text-slate-700">
+                    {[
+                      "Recurr verifies the Nomba webhook signature.",
+                      "The tokenized card is stored as a reusable payment method.",
+                      "The first invoice is marked paid.",
+                      "The next billing date is scheduled.",
+                      "The worker charges the saved token when the subscription is due."
+                    ].map((item) => (
+                      <li className="flex gap-2" key={item}>
+                        <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-600" size={16} />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <h3 className="mt-5 font-semibold">Events to handle</h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {webhookEvents.map((event) => (
-                    <span className="rounded-md border border-line bg-slate-50 px-3 py-1.5 font-mono text-xs" key={event}>
+                    <span className="rounded-md border border-line bg-white px-3 py-1.5 font-mono text-xs" key={event}>
                       {event}
                     </span>
                   ))}
                 </div>
-                <p className="mt-4 text-sm leading-6 text-muted">
-                  Recurr signs merchant webhook deliveries with HMAC SHA-256. Store the signing secret when you create the endpoint.
-                </p>
               </div>
-              <CodeBlock title="Verify signature" code={webhookSnippet} />
+              <CodeBlock title="Verify Recurr webhook signature" code={webhookSnippet} />
             </div>
           </section>
         </main>
@@ -235,11 +326,12 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             </div>
             <ul className="mt-4 space-y-3 text-sm text-slate-700">
               {[
-                "Use a LIVE business API key for live subscriptions.",
-                "Send Idempotency-Key on create and charge requests.",
-                "Store Recurr IDs returned by the API in your own database.",
-                "Verify webhook signatures before trusting event payloads.",
-                "Treat amountMinor as the source of truth for money."
+                "Create separate Test and Live API keys.",
+                "Keep secret keys out of frontend code.",
+                "Use amountMinor for all money values.",
+                "Verify webhook signatures before updating local records.",
+                "Run the Recurr worker so due subscriptions are charged.",
+                "Set live Nomba credentials before switching customers to Live mode."
               ].map((item) => (
                 <li className="flex gap-2" key={item}>
                   <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-600" size={16} />
@@ -251,18 +343,24 @@ function verifyRecurrSignature(rawBody, signature, secret) {
 
           <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
             <div className="flex items-center gap-2">
-              <LinkIcon className="text-brand-600" size={19} />
-              <h2 className="font-semibold">Useful links</h2>
+              <ArrowRight className="text-brand-600" size={19} />
+              <h2 className="font-semibold">Dashboard shortcuts</h2>
             </div>
             <div className="mt-4 space-y-3">
               <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/dashboard/api-keys">
                 API keys
               </a>
+              <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/dashboard/plans">
+                Plans
+              </a>
+              <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/dashboard/customers">
+                Customers
+              </a>
               <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/dashboard/webhooks">
-                Webhook endpoints
+                Webhooks
               </a>
               <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href={docsUrl} rel="noreferrer" target="_blank">
-                Swagger reference
+                Full API reference
               </a>
             </div>
           </section>

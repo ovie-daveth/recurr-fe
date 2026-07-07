@@ -16,6 +16,7 @@ import { LandingPage } from "../features/landing/LandingPage";
 import { LogsPage } from "../features/logs/LogsPage";
 import { PaymentAttemptsPage } from "../features/payment-attempts/PaymentAttemptsPage";
 import { PlansPage } from "../features/plans/PlansPage";
+import { SettingsPage } from "../features/settings/SettingsPage";
 import { SubscriptionsPage } from "../features/subscriptions/SubscriptionsPage";
 import { SubscribeCompletePage } from "../features/subscribe/SubscribeCompletePage";
 import { SubscribePage } from "../features/subscribe/SubscribePage";
@@ -63,7 +64,8 @@ export const router = createBrowserRouter([
       { path: "payment-attempts", element: <PaymentAttemptsPage /> },
       { path: "webhooks", element: <WebhooksPage /> },
       { path: "dunning", element: <DunningPoliciesPage /> },
-      { path: "logs", element: <LogsPage /> }
+      { path: "logs", element: <LogsPage /> },
+      { path: "settings", element: <SettingsPage /> }
     ]
   }
 ]);
