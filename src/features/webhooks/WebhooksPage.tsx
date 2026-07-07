@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Loader2, Plus, Send, Trash2, X } from "lucide-react";
+import { Loader2, Plus, Send, Trash2, X } from "lucide-react";
 import { FormEvent, type ReactNode, useState } from "react";
 import {
   createWebhookEndpoint,
@@ -15,6 +15,7 @@ import {
   type WebhookEvent
 } from "../../api/webhooks";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { CopyButton } from "../../components/ui/CopyButton";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { authStore } from "../../lib/auth-store";
 import { formatDate } from "../../lib/format";
@@ -183,9 +184,7 @@ export function WebhooksPage() {
           <p className="text-sm text-muted">Store this now. Recurr only shows this signing secret once.</p>
           <div className="mt-4 flex items-center gap-2 rounded-lg border border-line bg-slate-50 p-3">
             <code className="min-w-0 flex-1 break-all text-sm">{newSecret}</code>
-            <button className="rounded-md border border-line p-2 text-muted" type="button" onClick={() => navigator.clipboard.writeText(newSecret)}>
-              <Copy size={16} />
-            </button>
+            <CopyButton className="rounded-md border border-line p-2 text-muted" copiedLabel="Copied" iconOnly value={newSecret} />
           </div>
         </Modal>
       )}

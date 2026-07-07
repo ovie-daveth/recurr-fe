@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Clipboard, KeyRound, Loader2, RefreshCcw, ShieldAlert, Trash2 } from "lucide-react";
+import { KeyRound, Loader2, RefreshCcw, ShieldAlert, Trash2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import {
   createApiKey,
@@ -11,6 +11,7 @@ import {
   type CreateApiKeyResult
 } from "../../api/api-keys";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { CopyButton } from "../../components/ui/CopyButton";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { authStore } from "../../lib/auth-store";
 import { formatDate } from "../../lib/format";
@@ -23,7 +24,6 @@ export function ApiKeysPage() {
   const [statusFilter, setStatusFilter] = useState<ApiKeyStatus | "ALL">("ALL");
   const [createOpen, setCreateOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreateApiKeyResult | null>(null);
-  const [copiedSecret, setCopiedSecret] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const queryParams = useMemo(
@@ -85,13 +85,6 @@ export function ApiKeysPage() {
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Could not create API key");
     }
-  }
-
-  async function copySecret() {
-    if (!createdKey?.secret) return;
-    await navigator.clipboard.writeText(createdKey.secret);
-    setCopiedSecret(true);
-    window.setTimeout(() => setCopiedSecret(false), 1800);
   }
 
   return (
@@ -193,14 +186,13 @@ export function ApiKeysPage() {
                 <div className="mt-4 rounded-md border border-emerald-200 bg-white p-3">
                   <code className="block break-all text-sm text-slate-800">{createdKey.secret}</code>
                 </div>
-                <button
+                <CopyButton
                   className="mt-4 inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white"
-                  type="button"
-                  onClick={copySecret}
+                  copiedLabel="Copied secret"
+                  value={createdKey.secret}
                 >
-                  {copiedSecret ? <Check size={17} /> : <Clipboard size={17} />}
-                  {copiedSecret ? "Copied" : "Copy secret"}
-                </button>
+                  Copy secret
+                </CopyButton>
               </section>
             )}
 

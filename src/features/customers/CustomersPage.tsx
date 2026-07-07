@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, ExternalLink, Loader2, Pencil, Plus, Trash2, UserRoundCheck, X } from "lucide-react";
+import { CheckCircle2, Clock3, CreditCard, ExternalLink, Loader2, Pencil, Plus, Trash2, UserRoundCheck, X } from "lucide-react";
 import { FormEvent, type ReactNode, useState } from "react";
 import {
   createCustomer,
@@ -17,6 +17,7 @@ import {
   type PaymentMethod
 } from "../../api/payment-methods";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { CopyButton } from "../../components/ui/CopyButton";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { authStore } from "../../lib/auth-store";
 import { formatDate } from "../../lib/format";
@@ -300,7 +301,7 @@ function PaymentMethodsPanel({
           onClick={onSetup}
         >
           {settingUp ? <Loader2 className="animate-spin" size={16} /> : <ExternalLink size={16} />}
-          Setup card
+          Add payment method
         </button>
       </div>
 
@@ -321,32 +322,14 @@ function PaymentMethodsPanel({
           <p className="mt-1 text-sm text-muted">Start setup checkout so the customer can add a reusable card.</p>
         </div>
       ) : (
-        <div className="mt-5 divide-y divide-line rounded-lg border border-line">
+        <div className="mt-5 space-y-3">
           {paymentMethods.map((method) => (
-            <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between" key={method.id}>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">
-                    {method.brand || method.type} {method.last4 ? `**** ${method.last4}` : ""}
-                  </p>
-                  <StatusBadge tone={method.status === "ACTIVE" ? "success" : method.status === "PENDING_SETUP" ? "warning" : "danger"}>{method.status}</StatusBadge>
-                  {method.reusable && <StatusBadge tone="success">REUSABLE</StatusBadge>}
-                </div>
-                <p className="mt-1 break-all text-xs text-muted">Token {method.providerPaymentMethodReference || "-"}</p>
-                <p className="mt-1 text-xs text-muted">Created {formatDate(method.createdAt)}</p>
-              </div>
-              {method.status === "ACTIVE" && (
-                <button
-                  className="inline-flex items-center gap-2 rounded-md border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={revoking}
-                  type="button"
-                  onClick={() => onRevoke(method.id)}
-                >
-                  <Trash2 size={15} />
-                  Revoke
-                </button>
-              )}
-            </div>
+            <PaymentMethodCard
+              key={method.id}
+              method={method}
+              revoking={revoking}
+              onRevoke={onRevoke}
+            />
           ))}
         </div>
       )}
@@ -354,10 +337,96 @@ function PaymentMethodsPanel({
   );
 }
 
+function PaymentMethodCard({
+  method,
+  revoking,
+  onRevoke
+}: {
+  method: PaymentMethod;
+  revoking: boolean;
+  onRevoke: (paymentMethodId: string) => void;
+}) {
+  const isActive = method.status === "ACTIVE";
+  const cardTitle = isActive
+    ? `${method.brand || "Card"} ${method.last4 ? `**** ${method.last4}` : ""}`
+    : method.status === "PENDING_SETUP"
+      ? "Card setup pending"
+      : `${method.brand || method.type || "Payment method"}`;
+  const setupReference = method.providerSetupReference || metadataString(method.metadata, "requestedSetupReference");
+  const tokenReference = method.providerPaymentMethodReference;
+  const providerCustomer = method.providerCustomerReference;
+
+  return (
+    <article className={`rounded-lg border p-4 ${isActive ? "border-emerald-200 bg-emerald-50/40" : "border-amber-200 bg-amber-50/40"}`}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={`rounded-md p-2 ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+              {isActive ? <CheckCircle2 size={18} /> : <Clock3 size={18} />}
+            </div>
+            <div>
+              <p className="font-semibold">{cardTitle}</p>
+              <p className="text-xs text-muted">{method.provider} · {method.mode} · Created {formatDate(method.createdAt)}</p>
+            </div>
+            <StatusBadge tone={isActive ? "success" : method.status === "PENDING_SETUP" ? "warning" : "danger"}>{method.status}</StatusBadge>
+            {method.reusable && <StatusBadge tone="success">REUSABLE</StatusBadge>}
+          </div>
+
+          <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
+            <ReferenceRow label="Setup reference" value={setupReference} />
+            <ReferenceRow label="Card token" value={tokenReference} />
+            <ReferenceRow label="Nomba customer" value={providerCustomer} />
+            <ReferenceRow label="Recurr payment method ID" value={method.id} />
+          </div>
+
+          {method.status === "PENDING_SETUP" && (
+            <p className="mt-3 rounded-md bg-white/70 px-3 py-2 text-xs text-amber-800">
+              Waiting for checkout completion and Nomba webhook/token. Use the setup reference in the simulator if you are testing locally.
+            </p>
+          )}
+        </div>
+
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {(setupReference || tokenReference) && (
+            <CopyButton value={tokenReference || setupReference || ""} copiedLabel="Copied ref">
+              Copy ref
+            </CopyButton>
+          )}
+          {isActive && (
+            <button
+              className="inline-flex items-center gap-2 rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={revoking}
+              type="button"
+              onClick={() => onRevoke(method.id)}
+            >
+              <Trash2 size={15} />
+              Revoke
+            </button>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ReferenceRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="min-w-0 rounded-md border border-line bg-white px-3 py-2">
+      <p className="uppercase tracking-wide text-muted">{label}</p>
+      <p className="mt-1 break-all font-medium text-ink">{value || "-"}</p>
+    </div>
+  );
+}
+
+function metadataString(metadata: Record<string, unknown> | null, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 function CustomerModal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/45 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-xl overflow-hidden rounded-lg bg-white shadow-2xl">
+      <div className="w-full max-w-[50rem] overflow-hidden rounded-lg bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="font-semibold">{title}</h2>
           <button aria-label="Close modal" className="rounded-md border border-line p-2 text-muted" type="button" onClick={onClose}>

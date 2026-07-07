@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Copy, FileText, Loader2, Pencil, Plus, X } from "lucide-react";
+import { Archive, FileText, Loader2, Pencil, Plus, X } from "lucide-react";
 import { FormEvent, type ReactNode, useState } from "react";
 import { getBusiness } from "../../api/businesses";
 import {
@@ -13,6 +13,7 @@ import {
   type PlanStatus
 } from "../../api/plans";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { CopyButton } from "../../components/ui/CopyButton";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { authStore } from "../../lib/auth-store";
 import { formatDate, formatMoney } from "../../lib/format";
@@ -155,18 +156,13 @@ export function PlansPage() {
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
                     {businessQuery.data?.slug && (
-                      <button
+                      <CopyButton
                         className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-medium"
-                        type="button"
-                        onClick={() =>
-                          navigator.clipboard.writeText(
-                            `${window.location.origin}/subscribe/${businessQuery.data.slug}/${plan.code}?mode=${selectedMode}`
-                          )
-                        }
+                        value={`${window.location.origin}/subscribe/${businessQuery.data.slug}/${plan.code}?mode=${selectedMode}`}
+                        copiedLabel="Copied link"
                       >
-                        <Copy size={15} />
                         Copy link
-                      </button>
+                      </CopyButton>
                     )}
                     <button
                       className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-medium"

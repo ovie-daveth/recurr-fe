@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clock3, Copy, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock3, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { getPublicSubscriptionPage } from "../../api/public-subscriptions";
+import { CopyButton } from "../../components/ui/CopyButton";
 import { formatMoney } from "../../lib/format";
 
 export function SubscribeCompletePage() {
@@ -66,14 +67,12 @@ export function SubscribeCompletePage() {
               <div className="mt-2 flex items-center gap-2 rounded-md border border-line bg-white p-3">
                 <code className="min-w-0 flex-1 break-all text-sm">{orderReference || "-"}</code>
                 {orderReference && (
-                  <button
-                    aria-label="Copy order reference"
+                  <CopyButton
                     className="rounded-md border border-line p-2 text-muted"
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(orderReference)}
-                  >
-                    <Copy size={16} />
-                  </button>
+                    copiedLabel="Copied"
+                    iconOnly
+                    value={orderReference}
+                  />
                 )}
               </div>
             </div>
