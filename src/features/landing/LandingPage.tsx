@@ -132,7 +132,7 @@ export function LandingPage() {
           <nav className="hidden items-center gap-8 text-sm text-emerald-50/80 md:flex">
             <a href="#platform">Platform</a>
             <a href="#flow">Flow</a>
-            <a href="#developers">Developers</a>
+            <Link to="/developers">Developers</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link className="hidden text-sm font-medium text-emerald-50 md:inline" to="/auth/login">
@@ -169,9 +169,9 @@ export function LandingPage() {
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-md border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
-                to="/auth/login"
+                to="/developers"
               >
-                Open dashboard
+                View developer docs
               </Link>
             </div>
 
@@ -258,9 +258,9 @@ export function LandingPage() {
             </p>
             <Link
               className="mt-8 inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-[#071710]"
-              to="/auth/signup"
+              to="/developers"
             >
-              Launch dashboard
+              Open developer docs
               <ArrowRight size={18} />
             </Link>
           </div>

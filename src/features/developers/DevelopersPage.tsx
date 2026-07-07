@@ -13,7 +13,7 @@ import {
   UserPlus,
   Webhook
 } from "lucide-react";
-import { PageHeader } from "../../components/ui/PageHeader";
+import { Link } from "react-router-dom";
 import { CopyButton } from "../../components/ui/CopyButton";
 import { authStore } from "../../lib/auth-store";
 
@@ -74,6 +74,7 @@ const steps = [
 
 const endpointGroups = [
   {
+    id: "plans",
     title: "Plans",
     description: "Create the recurring price your customers will subscribe to.",
     method: "POST",
@@ -88,6 +89,7 @@ const endpointGroups = [
 }`
   },
   {
+    id: "customers",
     title: "Customers",
     description: "Create or find the subscriber inside your business workspace.",
     method: "POST",
@@ -99,6 +101,7 @@ const endpointGroups = [
 }`
   },
   {
+    id: "checkout",
     title: "Hosted subscription",
     description: "Use this when you want Recurr to collect the card and activate the subscription after Nomba payment_success.",
     method: "POST",
@@ -110,6 +113,7 @@ const endpointGroups = [
 }`
   },
   {
+    id: "webhook-endpoints",
     title: "Merchant webhooks",
     description: "Send subscription and billing events from Recurr back to your app.",
     method: "POST",
@@ -134,6 +138,32 @@ const webhookEvents = [
   "invoice.payment_failed",
   "payment_method.updated",
   "dunning.retry_scheduled"
+];
+
+const docsNav = [
+  {
+    title: "API Documentation",
+    links: [
+      ["Introduction", "#introduction", "GET"],
+      ["Get API keys", "#api-key", "GET"]
+    ]
+  },
+  {
+    title: "Core integration",
+    links: [
+      ["Create plans", "#plans", "POST"],
+      ["Create customers", "#customers", "POST"],
+      ["Start hosted checkout", "#checkout", "POST"],
+      ["Listen for webhooks", "#webhooks", "POST"]
+    ]
+  },
+  {
+    title: "Operations",
+    links: [
+      ["Recurring billing", "#automatic-billing", "GET"],
+      ["Production checklist", "#checklist", "GET"]
+    ]
+  }
 ];
 
 export function DevelopersPage() {
@@ -170,30 +200,83 @@ function verifyRecurrSignature(rawBody, signature, secret) {
 }`;
 
   return (
-    <>
-      <PageHeader
-        title="Developer integration"
-        description="A practical path for connecting your app to Recurr: create a business, get an API key, send customers to checkout, then listen for billing events."
-        action={
-          <a
-            className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
-            href={docsUrl}
-            rel="noreferrer"
-            target="_blank"
+    <main className="min-h-screen bg-white text-[#1f2328]">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-6 px-5 lg:px-8">
+          <Link className="mr-3 text-xl font-semibold text-[#06150f]" to="/">
+            Recurr
+          </Link>
+          <nav className="hidden items-center gap-6 text-sm font-medium text-slate-700 md:flex">
+            <a className="border-b-2 border-[#d1a000] py-5 text-[#06150f]" href="#introduction">
+              Documentation
+            </a>
+            <a className="py-5 hover:text-[#06150f]" href="#api-reference">
+              API Reference
+            </a>
+            <a className="py-5 hover:text-[#06150f]" href="#webhooks">
+              Webhooks
+            </a>
+          </nav>
+          <div className="ml-auto hidden w-full max-w-sm items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-500 lg:flex">
+            Search documentation
+            <span className="ml-auto rounded bg-white px-2 py-0.5 text-xs text-slate-500">Ctrl K</span>
+          </div>
+          <Link
+            className="ml-auto rounded-md bg-[#c99a00] px-4 py-2 text-sm font-semibold text-white lg:ml-0"
+            to="/auth/login"
           >
-            <ExternalLink size={17} />
-            Open API reference
-          </a>
-        }
-      />
+            Dashboard
+          </Link>
+        </div>
+      </header>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <main className="space-y-6">
-          <section className="rounded-lg border border-line bg-white shadow-panel">
-            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
+      <div className="mx-auto grid max-w-[1500px] lg:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_240px]">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] overflow-y-auto border-r border-slate-200 px-5 py-6 lg:block">
+          {docsNav.map((group) => (
+            <div className="mb-8" key={group.title}>
+              <p className="mb-3 text-xs font-semibold text-slate-500">{group.title}</p>
+              <div className="space-y-1">
+                {group.links.map(([label, href, method]) => (
+                  <a
+                    className="flex items-start gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-[#faf6e7] hover:text-[#a77a00]"
+                    href={href}
+                    key={href}
+                  >
+                    <span
+                      className={[
+                        "mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold",
+                        method === "POST"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      ].join(" ")}
+                    >
+                      {method}
+                    </span>
+                    <span>{label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </aside>
+
+        <article className="min-w-0 overflow-hidden px-5 py-8 lg:px-10 lg:py-12 xl:px-14">
+          <section id="introduction" className="mb-12">
+            <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm leading-6 text-blue-900">
+              <strong>No account required to read these docs.</strong> Create a merchant account only when you are ready to generate real API keys and configure live billing.
+            </div>
+            <p className="text-sm font-semibold uppercase text-[#c99a00]">API Documentation</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-normal text-[#1f2328]">Integrate Recurr subscriptions</h1>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
+              Connect your product to Recurr by creating a merchant business, generating API keys, creating plans and customers, sending subscribers to checkout, and listening for lifecycle webhooks.
+            </p>
+          </section>
+
+          <section id="api-reference" className="mb-10 rounded-xl border border-slate-200 bg-white">
+            <div className="grid min-w-0 gap-5 p-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <div>
                 <div className="flex items-center gap-2">
-                  <Server className="text-brand-600" size={19} />
+                  <Server className="text-[#c99a00]" size={19} />
                   <h2 className="font-semibold">Connect to Recurr</h2>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted">
@@ -204,21 +287,21 @@ function verifyRecurrSignature(rawBody, signature, secret) {
                   <InfoBlock label="Current mode" value={selectedMode} />
                 </div>
               </div>
-              <CodeBlock title="Authenticated request" code={authSnippet} />
+              <CodeBlock className="min-w-0" title="Authenticated request" code={authSnippet} />
             </div>
           </section>
 
-          <section className="rounded-lg border border-line bg-white shadow-panel">
+          <section className="mb-10 rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
-                <Route className="text-brand-600" size={19} />
+                <Route className="text-[#c99a00]" size={19} />
                 <h2 className="font-semibold">Integration path</h2>
               </div>
               <p className="mt-1 text-sm text-muted">Follow these steps in order for a normal subscription integration.</p>
             </div>
             <div className="divide-y divide-line">
               {steps.map((step, index) => (
-                <article className="grid gap-4 p-5 lg:grid-cols-[220px_1fr]" key={step.id}>
+                <article className="grid gap-4 p-5 lg:grid-cols-[220px_1fr]" id={step.id} key={step.id}>
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-50 text-sm font-semibold text-brand-700">
                       {index + 1}
@@ -243,18 +326,18 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             </div>
           </section>
 
-          <section className="rounded-lg border border-line bg-white shadow-panel">
+          <section className="mb-10 rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
-                <Code2 className="text-brand-600" size={19} />
+                <Code2 className="text-[#c99a00]" size={19} />
                 <h2 className="font-semibold">Copy-ready examples</h2>
               </div>
               <p className="mt-1 text-sm text-muted">Start with the hosted subscription flow if you want Recurr and Nomba to handle card setup.</p>
             </div>
-            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
+            <div className="grid min-w-0 gap-5 p-5 xl:grid-cols-[minmax(230px,0.55fr)_minmax(0,1fr)] 2xl:grid-cols-[minmax(230px,0.5fr)_minmax(0,1fr)]">
               <div className="space-y-4">
                 {endpointGroups.map((endpoint) => (
-                  <article className="rounded-lg border border-line p-4" key={endpoint.path}>
+                  <article className="rounded-lg border border-line p-4" id={endpoint.id} key={endpoint.path}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <h3 className="font-semibold">{endpoint.title}</h3>
@@ -277,17 +360,17 @@ function verifyRecurrSignature(rawBody, signature, secret) {
             </div>
           </section>
 
-          <section className="rounded-lg border border-line bg-white shadow-panel">
+          <section id="webhooks" className="mb-10 rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-center gap-2">
-                <Webhook className="text-brand-600" size={19} />
+                <Webhook className="text-[#c99a00]" size={19} />
                 <h2 className="font-semibold">Webhooks and automatic billing</h2>
               </div>
               <p className="mt-1 text-sm text-muted">Your integration should trust webhook events, not the customer returning to your callback URL.</p>
             </div>
-            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1fr]">
+            <div className="grid min-w-0 gap-5 p-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <div>
-                <div className="rounded-lg border border-line bg-slate-50 p-4">
+                <div id="automatic-billing" className="rounded-lg border border-line bg-slate-50 p-4">
                   <h3 className="font-semibold">What happens after Nomba payment_success</h3>
                   <ol className="mt-3 space-y-3 text-sm text-slate-700">
                     {[
@@ -313,13 +396,11 @@ function verifyRecurrSignature(rawBody, signature, secret) {
                   ))}
                 </div>
               </div>
-              <CodeBlock title="Verify Recurr webhook signature" code={webhookSnippet} />
+              <CodeBlock className="min-w-0" title="Verify Recurr webhook signature" code={webhookSnippet} />
             </div>
           </section>
-        </main>
 
-        <aside className="space-y-6">
-          <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
+          <section id="checklist" className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="text-emerald-600" size={19} />
               <h2 className="font-semibold">Production checklist</h2>
@@ -340,11 +421,25 @@ function verifyRecurrSignature(rawBody, signature, secret) {
               ))}
             </ul>
           </section>
+        </article>
 
-          <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] overflow-y-auto border-l border-slate-200 px-5 py-12 2xl:block">
+          <div className="mb-7">
+            <p className="mb-3 text-sm font-semibold text-slate-800">On this page</p>
+            <div className="space-y-2 text-sm text-slate-600">
+              <a className="block hover:text-[#c99a00]" href="#introduction">Welcome</a>
+              <a className="block hover:text-[#c99a00]" href="#api-reference">Authentication</a>
+              <a className="block hover:text-[#c99a00]" href="#api-key">Get API keys</a>
+              <a className="block hover:text-[#c99a00]" href="#checkout">Hosted checkout</a>
+              <a className="block hover:text-[#c99a00]" href="#webhooks">Webhooks</a>
+              <a className="block hover:text-[#c99a00]" href="#checklist">Checklist</a>
+            </div>
+          </div>
+
+          <section className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2">
               <ArrowRight className="text-brand-600" size={19} />
-              <h2 className="font-semibold">Dashboard shortcuts</h2>
+              <h2 className="font-semibold">Quick actions</h2>
             </div>
             <div className="mt-4 space-y-3">
               <a className="block rounded-md border border-line px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/dashboard/api-keys">
@@ -366,7 +461,7 @@ function verifyRecurrSignature(rawBody, signature, secret) {
           </section>
         </aside>
       </div>
-    </>
+    </main>
   );
 }
 
@@ -384,14 +479,14 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
 
 function CodeBlock({ title, code, className = "" }: { title: string; code: string; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-line bg-slate-950 ${className}`}>
+    <div className={`min-w-0 max-w-full overflow-hidden rounded-lg border border-line bg-slate-950 ${className}`}>
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
-        <p className="text-xs font-semibold text-slate-300">{title}</p>
+        <p className="min-w-0 truncate text-xs font-semibold text-slate-300">{title}</p>
         <CopyButton className="rounded-md border border-white/10 px-2 py-1 text-xs text-slate-200" copiedLabel="Copied" value={code}>
           Copy
         </CopyButton>
       </div>
-      <pre className="overflow-x-auto p-4 text-xs leading-6 text-slate-100">
+      <pre className="max-w-full overflow-x-auto p-4 text-xs leading-6 text-slate-100">
         <code>{code}</code>
       </pre>
     </div>

@@ -36,6 +36,10 @@ export const router = createBrowserRouter([
     element: <SubscribeCompletePage />
   },
   {
+    path: "/developers",
+    element: <DevelopersPage />
+  },
+  {
     path: "/auth",
     element: <AuthLayout />,
     children: [
@@ -56,7 +60,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "businesses", element: <BusinessesPage /> },
       { path: "api-keys", element: <ApiKeysPage /> },
-      { path: "developers", element: <DevelopersPage /> },
+      { path: "developers", element: <Navigate to="/developers" replace /> },
       { path: "customers", element: <CustomersPage /> },
       { path: "plans", element: <PlansPage /> },
       { path: "subscriptions", element: <SubscriptionsPage /> },
