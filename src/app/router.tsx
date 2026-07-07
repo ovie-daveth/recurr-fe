@@ -9,6 +9,7 @@ import { VerifyEmailPage } from "../features/auth/VerifyEmailPage";
 import { BusinessesPage } from "../features/businesses/BusinessesPage";
 import { CustomersPage } from "../features/customers/CustomersPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { DevelopersPage } from "../features/developers/DevelopersPage";
 import { DunningPoliciesPage } from "../features/dunning/DunningPoliciesPage";
 import { InvoicesPage } from "../features/invoices/InvoicesPage";
 import { LandingPage } from "../features/landing/LandingPage";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "businesses", element: <BusinessesPage /> },
       { path: "api-keys", element: <ApiKeysPage /> },
+      { path: "developers", element: <DevelopersPage /> },
       { path: "customers", element: <CustomersPage /> },
       { path: "plans", element: <PlansPage /> },
       { path: "subscriptions", element: <SubscriptionsPage /> },
