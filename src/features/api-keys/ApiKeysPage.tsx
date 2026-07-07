@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Clipboard, KeyRound, Loader2, Plus, ShieldAlert, Trash2 } from "lucide-react";
+import { Check, Clipboard, KeyRound, Loader2, RefreshCcw, ShieldAlert, Trash2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import {
   createApiKey,
@@ -19,6 +19,7 @@ export function ApiKeysPage() {
   const queryClient = useQueryClient();
   const businessId = authStore((state) => state.selectedBusinessId);
   const selectedMode = authStore((state) => state.selectedMode);
+  const setBusinessApiKeySecret = authStore((state) => state.setBusinessApiKeySecret);
   const [statusFilter, setStatusFilter] = useState<ApiKeyStatus | "ALL">("ALL");
   const [createOpen, setCreateOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreateApiKeyResult | null>(null);
@@ -40,10 +41,20 @@ export function ApiKeysPage() {
     enabled: Boolean(businessId)
   });
 
+  const activeKey = apiKeysQuery.data?.apiKeys.find((apiKey) => getKeyStatus(apiKey) === "ACTIVE");
+  const rotateLabel = activeKey ? `Rotate ${selectedMode.toLowerCase()} key` : `Create ${selectedMode.toLowerCase()} key`;
+
   const createMutation = useMutation({
     mutationFn: (payload: { name: string; mode: ApiKeyMode; expiresAt?: string }) => createApiKey(businessId!, payload),
     onSuccess: async (result) => {
       setCreatedKey(result);
+      if (businessId) {
+        setBusinessApiKeySecret({
+          businessId,
+          mode: result.apiKey.mode,
+          secret: result.secret
+        });
+      }
       setCreateOpen(false);
       await queryClient.invalidateQueries({ queryKey: ["api-keys", businessId] });
     }
@@ -87,7 +98,7 @@ export function ApiKeysPage() {
     <>
       <PageHeader
         title="API keys"
-        description="Create test and live keys for the selected business, copy newly-created secrets, and revoke keys safely."
+        description="Each business has one active key per environment. Rotating creates a new key and revokes the old active key."
         action={
           <button
             className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
@@ -98,8 +109,8 @@ export function ApiKeysPage() {
               setFormError(null);
             }}
           >
-            <Plus size={17} />
-            New API key
+            <RefreshCcw size={17} />
+            {rotateLabel}
           </button>
         }
       />
@@ -116,7 +127,7 @@ export function ApiKeysPage() {
               <div>
                 <h2 className="font-semibold">Business API keys</h2>
                 <p className="mt-1 text-sm text-muted">
-                  Showing {selectedMode.toLowerCase()} keys for the selected business. Use the dashboard switch to change environment.
+                  Showing {selectedMode.toLowerCase()} key history for the selected business. Only one key can be active in this environment.
                 </p>
               </div>
               <div className="flex gap-2">
@@ -147,7 +158,7 @@ export function ApiKeysPage() {
             ) : (apiKeysQuery.data?.apiKeys.length ?? 0) === 0 ? (
               <EmptyState
                 title={`No ${selectedMode.toLowerCase()} API keys found`}
-                description={`Create a ${selectedMode.toLowerCase()} key for this business, or switch environment from the dashboard header.`}
+                description={`Create the first ${selectedMode.toLowerCase()} key for this business, or switch environment from the dashboard header.`}
               />
             ) : (
               <div className="divide-y divide-line">
@@ -173,6 +184,12 @@ export function ApiKeysPage() {
                 <p className="mt-2 text-sm leading-6 text-emerald-800">
                   {createdKey.warning}
                 </p>
+                {createdKey.rotation?.rotated && (
+                  <p className="mt-2 rounded-md bg-white/70 px-3 py-2 text-sm text-emerald-900">
+                    Previous {createdKey.apiKey.mode.toLowerCase()} key revoked. {createdKey.rotation.revokedCount} old key
+                    {createdKey.rotation.revokedCount === 1 ? "" : "s"} can no longer authenticate.
+                  </p>
+                )}
                 <div className="mt-4 rounded-md border border-emerald-200 bg-white p-3">
                   <code className="block break-all text-sm text-slate-800">{createdKey.secret}</code>
                 </div>
@@ -189,8 +206,10 @@ export function ApiKeysPage() {
 
             {createOpen && (
               <form className="rounded-lg border border-line bg-white p-5 shadow-panel" onSubmit={handleCreate}>
-                <h2 className="font-semibold">Create API key</h2>
-                <p className="mt-1 text-sm text-muted">The secret is shown once after creation.</p>
+                <h2 className="font-semibold">{rotateLabel}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  The secret is shown once. If an active {selectedMode.toLowerCase()} key exists, it will be revoked.
+                </p>
 
                 <label className="mt-5 block text-sm font-medium">
                   Name
@@ -212,7 +231,7 @@ export function ApiKeysPage() {
                 {formError && <p className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{formError}</p>}
 
                 <button className="mt-5 rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Creating..." : "Create key"}
+                  {createMutation.isPending ? "Saving..." : activeKey ? "Rotate key" : "Create key"}
                 </button>
               </form>
             )}

@@ -32,6 +32,12 @@ export type CreateApiKeyPayload = {
 
 export type CreateApiKeyResult = {
   apiKey: ApiKey;
+  revokedApiKeys?: ApiKey[];
+  rotation?: {
+    rotated: boolean;
+    revokedCount: number;
+    revokedApiKeyIds: string[];
+  };
   secret: string;
   warning: string;
 };

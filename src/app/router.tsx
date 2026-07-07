@@ -16,12 +16,22 @@ import { LogsPage } from "../features/logs/LogsPage";
 import { PaymentAttemptsPage } from "../features/payment-attempts/PaymentAttemptsPage";
 import { PlansPage } from "../features/plans/PlansPage";
 import { SubscriptionsPage } from "../features/subscriptions/SubscriptionsPage";
+import { SubscribeCompletePage } from "../features/subscribe/SubscribeCompletePage";
+import { SubscribePage } from "../features/subscribe/SubscribePage";
 import { WebhooksPage } from "../features/webhooks/WebhooksPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />
+  },
+  {
+    path: "/subscribe/:businessSlug/:planCode",
+    element: <SubscribePage />
+  },
+  {
+    path: "/subscribe/:businessSlug/:planCode/complete",
+    element: <SubscribeCompletePage />
   },
   {
     path: "/auth",

@@ -7,6 +7,7 @@ export type Business = {
   id: string;
   ownerUserId: string;
   type: BusinessType;
+  slug: string;
   name: string;
   status: BusinessStatus;
   businessName: string | null;

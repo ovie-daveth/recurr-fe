@@ -51,8 +51,17 @@ export function DashboardLayout() {
   useEffect(() => {
     if (!selectedBusinessId && businesses[0]) {
       setBusiness(businesses[0].id);
+      return;
     }
-  }, [businesses, selectedBusinessId, setBusiness]);
+
+    if (
+      businessesQuery.isSuccess &&
+      selectedBusinessId &&
+      !businesses.some((business) => business.id === selectedBusinessId)
+    ) {
+      setBusiness(null);
+    }
+  }, [businesses, businessesQuery.isSuccess, selectedBusinessId, setBusiness]);
 
   async function handleLogout() {
     try {
